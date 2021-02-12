@@ -1,2 +1,2 @@
 # infinity-stones
-Space stone
+Soul stone
