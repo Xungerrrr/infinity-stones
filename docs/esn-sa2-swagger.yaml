@@ -1,0 +1,240 @@
+openapi: 3.0.1
+info:
+  title: ESN
+  description: >-
+    This is a API documents for ESN application
+  # termsOfService:
+  # contact:
+  # license:
+  version: 1.0.0-oas3
+# externalDocs:
+# servers:
+tags:
+  - name: users
+    description: Operations about users
+  - name: messages
+    description: Operations about messages
+    # externalDocs:
+    #   description: Find out more about our store
+    #   url: 'http://swagger.io'
+    
+security:
+  - bearerAuth: []
+    
+paths:
+
+  /users:
+    get:
+      tags:
+        - users
+      summary: Retrieve all users
+      description: Get the information of all users
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags:
+        - users
+      summary: Register user
+      description: Validate information and create user
+      security: []
+      requestBody:
+        description: Retrieved from user input
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+        required: true
+      responses:
+        '200':
+          description: Registration succeed
+          # content: {}
+        '409':
+          description: Username exists or illegal
+          
+  /users/valid:
+    get:
+      tags:
+        - users
+      summary: Validate username
+      description: Check if the username exists and is legal.
+      security: []
+      # operationId: validateUser
+      parameters:
+        - name: username
+          in: query
+          description: Username that needs to be verified
+          required: true
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  existing:
+                    type: boolean
+                  reserved:
+                    type: boolean
+                  lengthValid:
+                    type: boolean
+                required:
+                  - action
+        '400':
+          description: Username not provided 
+    
+  
+  /users/{username}/online:
+    put:
+      tags:
+        - users
+      summary: Log in a user
+      description: Change the online status of a user to "ONLINE"
+      security: []
+      parameters:
+        - name: username
+          in: path
+          description: Username of user
+          required: true
+          explode: true
+          schema:
+            type: string
+      requestBody:
+        description: password
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+        '404':
+          description: User not found
+        
+  /users/{username}/offline:
+    put:
+      tags:
+        - users
+      summary: Log out a user
+      description: Change the online status of a user to "OFFLINE"
+      parameters:
+        - name: username
+          in: path
+          description: Username of user
+          required: true
+          explode: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+      
+  /messages/public:
+    get:
+      tags: 
+        - messages
+      summary: Retrieve all public messages
+      description: Get all messages posted on the public wall
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    post:
+      tags: 
+        - messages
+      summary: Post a public message
+      description: Post a messages on the public wall
+      requestBody:
+        description: Posting a message
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                author:
+                  type: string
+        required: true
+      responses:
+        '201':
+          description: New message created
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+    
+    
+  
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+        onlineStatus:
+          type: string
+          enum:
+            - online
+            - offline
+    Message:
+      type: object
+      properties:
+        content:
+          type: string
+        author:
+          type: string
+        timestamp:
+          type: string
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    
+    # petstore_auth:
+    #   type: oauth2
+    #   flows:
+    #     implicit:
+    #       authorizationUrl: 'http://petstore.swagger.io/oauth/dialog'
+    #       scopes:
+    #         'write:pets': modify pets in your account
+    #         'read:pets': read your pets
+    # api_key:
+    #   type: apiKey
+    #   name: api_key
+    #   in: header
